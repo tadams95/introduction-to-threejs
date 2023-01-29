@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
+import Stats from "three/examples/jsm/libs/stats.module";
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -17,14 +17,14 @@ document.body.appendChild(renderer.domElement);
 
 new OrbitControls(camera, renderer.domElement);
 
-const geometry = new THREE.BoxGeometry();
+const geometry = new THREE.SphereGeometry();
 const material = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   wireframe: true,
 });
 
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const sphere = new THREE.Mesh(geometry, material);
+scene.add(sphere);
 
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
@@ -34,11 +34,17 @@ function onWindowResize() {
   render();
 }
 
+const stats = Stats();
+
+document.body.appendChild(stats.dom);
+
 function animate() {
   requestAnimationFrame(animate);
 
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+  sphere.rotation.x += 0.001;
+  sphere.rotation.y += 0.001;
+
+  stats.update();
 
   render();
 }
