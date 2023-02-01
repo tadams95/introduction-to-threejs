@@ -1,13 +1,11 @@
 import * as THREE from 'three'
-import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+// import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-
-const light = new THREE.PointLight()
-light.position.set(10, 10, 10)
-scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -15,40 +13,63 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 3
+camera.position.z = 2
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const geometry = new THREE.BoxGeometry()
-//const material: THREE.MeshPhongMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true })
-//const cube: THREE.Mesh = new THREE.Mesh(geometry, material)
-//scene.add(cube)
+const material = new THREE.MeshNormalMaterial({ transparent: true })
 
-const material = [
-    new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true }),
-    new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true }),
-    new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true })
-]
+const cube = new THREE.Mesh(geometry, material)
+scene.add(cube)
 
-const cubes = [
-    new THREE.Mesh(geometry, material[0]),
-    new THREE.Mesh(geometry, material[1]),
-    new THREE.Mesh(geometry, material[2])
-]
-cubes[0].position.x = -2
-cubes[1].position.x = 0
-cubes[2].position.x = 2
-cubes.forEach((c) => scene.add(c))
+const orbitControls = new OrbitControls(camera, renderer.domElement)
 
-const controls = new DragControls(cubes, camera, renderer.domElement)
-// controls.addEventListener('dragstart', function (event) {
+// const dragControls = new DragControls([cube], camera, renderer.domElement)
+// dragControls.addEventListener('dragstart', function (event) {
+//     orbitControls.enabled = false
 //     event.object.material.opacity = 0.33
 // })
-// controls.addEventListener('dragend', function (event) {
+// dragControls.addEventListener('dragend', function (event) {
+//     orbitControls.enabled = true
 //     event.object.material.opacity = 1
 // })
+
+const transformControls = new TransformControls(camera, renderer.domElement)
+transformControls.attach(cube)
+transformControls.setMode('rotate')
+scene.add(transformControls)
+
+transformControls.addEventListener('dragging-changed', function (event) {
+    orbitControls.enabled = !event.value
+    //dragControls.enabled = !event.value
+})
+
+window.addEventListener('keydown', function (event) {
+    switch (event.key) {
+        case 'g':
+            transformControls.setMode('translate')
+            break
+        case 'r':
+            transformControls.setMode('rotate')
+            break
+        case 's':
+            transformControls.setMode('scale')
+            break
+    }
+})
+
+const backGroundTexture = new THREE.CubeTextureLoader().load([
+    'img/px_eso0932a.jpg',
+    'img/nx_eso0932a.jpg',
+    'img/py_eso0932a.jpg',
+    'img/ny_eso0932a.jpg',
+    'img/pz_eso0932a.jpg',
+    'img/nz_eso0932a.jpg',
+])
+scene.background = backGroundTexture
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -63,14 +84,6 @@ document.body.appendChild(stats.dom)
 
 function animate() {
     requestAnimationFrame(animate)
-
-    cubes[0].rotation.x += 0.01
-    cubes[0].rotation.y += 0.011
-    cubes[1].rotation.x += 0.012
-    cubes[1].rotation.y += 0.013
-    cubes[2].rotation.x += 0.014
-    cubes[2].rotation.y += 0.015
-    //controls.update()
 
     render()
 
