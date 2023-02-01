@@ -1,92 +1,121 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import Stats from "three/examples/jsm/libs/stats.module";
+import * as THREE from 'three'
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
+import Stats from 'three/examples/jsm/libs/stats.module'
 
-const scene = new THREE.Scene();
-scene.add(new THREE.AxesHelper(5));
+const scene = new THREE.Scene()
+scene.add(new THREE.AxesHelper(5))
 
 const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.z = 2;
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+)
+camera.position.y = 1
+camera.position.z = 2
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer()
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const menuPanel = document.getElementById('menuPanel') as HTMLDivElement
+const startButton = document.getElementById('startButton') as HTMLInputElement
+startButton.addEventListener(
+    'click',
+    function () {
+        controls.lock()
+    },
+    false
+)
 
-// camera.lookAt(0.5, 0.5, 0.5)
-// controls.target.set(.5, .5, .5)
-// controls.update()
-
+const controls = new PointerLockControls(camera, renderer.domElement)
 // controls.addEventListener('change', () => console.log("Controls Change"))
-// controls.addEventListener('start', () => console.log("Controls Start Event"))
-// controls.addEventListener('end', () => console.log("Controls End Event"))
-// controls.autoRotate = true;
-// controls.autoRotateSpeed = 5;
-controls.enableDamping = true
-controls.dampingFactor = .025
-// controls.enableKeys = true //older versions
-// controls.listenToKeyEvents(document.body)
-// controls.keys = {
-//     LEFT: "ArrowLeft", //left arrow
-//     UP: "ArrowUp", // up arrow
-//     RIGHT: "ArrowRight", // right arrow
-//     BOTTOM: "ArrowDown" // down arrow
-// }
-// controls.mouseButtons = {
-//     LEFT: THREE.MOUSE.ROTATE,
-//     MIDDLE: THREE.MOUSE.DOLLY,
-//     RIGHT: THREE.MOUSE.PAN
-// }
-// controls.touches = {
-//     ONE: THREE.TOUCH.ROTATE,
-//     TWO: THREE.TOUCH.DOLLY_PAN
-// }
-// controls.screenSpacePanning = true
-// controls.minAzimuthAngle = 0
-// controls.maxAzimuthAngle = Math.PI / 2
-// controls.minPolarAngle = 0
-// controls.maxPolarAngle = Math.PI
-// controls.maxDistance = 4
-// controls.minDistance = 2
+controls.addEventListener('lock', () => menuPanel.style.display = 'none')
+controls.addEventListener('unlock', () => menuPanel.style.display = 'block')
 
-const geometry = new THREE.BoxGeometry();
+const planeGeometry = new THREE.PlaneGeometry(100, 100, 50, 50)
 const material = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
-  wireframe: true,
-});
+    color: 0x00ff00,
+    wireframe: true,
+})
+const plane = new THREE.Mesh(planeGeometry, material)
+plane.rotateX(-Math.PI / 2)
+scene.add(plane)
 
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+const cubes: THREE.Mesh[] = []
+for (let i = 0; i < 100; i++) {
+    const geo = new THREE.BoxGeometry(
+        Math.random() * 4,
+        Math.random() * 16,
+        Math.random() * 4
+    )
+    const mat = new THREE.MeshBasicMaterial({ wireframe: true })
+    switch (i % 3) {
+        case 0:
+            mat.color = new THREE.Color(0xff0000)
+            break
+        case 1:
+            mat.color = new THREE.Color(0xffff00)
+            break
+        case 2:
+            mat.color = new THREE.Color(0x0000ff)
+            break
+    }
+    const cube = new THREE.Mesh(geo, mat)
+    cubes.push(cube)
+}
+cubes.forEach((c) => {
+    c.position.x = Math.random() * 100 - 50
+    c.position.z = Math.random() * 100 - 50
+    c.geometry.computeBoundingBox()
+    c.position.y =
+        ((c.geometry.boundingBox as THREE.Box3).max.y -
+            (c.geometry.boundingBox as THREE.Box3).min.y) /
+        2
+    scene.add(c)
+})
 
-window.addEventListener("resize", onWindowResize, false);
+const onKeyDown = function (event: KeyboardEvent) {
+    switch (event.code) {
+        case "KeyW":
+            controls.moveForward(.25)
+            break
+        case "KeyA":
+            controls.moveRight(-.25)
+            break
+        case "KeyS":
+            controls.moveForward(-.25)
+            break
+        case "KeyD":
+            controls.moveRight(.25)
+            break
+    }
+}
+document.addEventListener('keydown', onKeyDown, false)
+
+window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  render();
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    render()
 }
 
-const stats = Stats();
-document.body.appendChild(stats.dom);
+const stats = Stats()
+document.body.appendChild(stats.dom)
 
 function animate() {
-  requestAnimationFrame(animate);
+    requestAnimationFrame(animate)
 
-  controls.update();
+    //controls.update()
 
-  render();
+    render()
 
-  stats.update();
+    stats.update()
 }
 
 function render() {
-  renderer.render(scene, camera);
+    renderer.render(scene, camera)
 }
 
-animate();
+animate()
